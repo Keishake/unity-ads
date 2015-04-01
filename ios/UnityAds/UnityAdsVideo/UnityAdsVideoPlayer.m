@@ -14,6 +14,7 @@
 #import "../UnityAdsCampaign/UnityAdsCampaignManager.h"
 #import "../UnityAdsData/UnityAdsInstrumentation.h"
 #import "../UnityAdsProperties/UnityAdsConstants.h"
+#import "UnityAdsCacheManager.h"
 
 @interface UnityAdsVideoPlayer ()
   @property (nonatomic, assign) id timeObserver;
@@ -39,6 +40,7 @@
 }
 
 - (void)clearPlayer {
+  [self pause];
   self.isPlaying = false;
   self.hasPlayed = false;
   self.hasMoved = false;
@@ -106,6 +108,9 @@
   self.timeOutTimer = [NSTimer scheduledTimerWithTimeInterval:25 target:self selector:@selector(checkIfPlayed) userInfo:nil repeats:false];
   
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_videoPlaybackEnded:) name:AVPlayerItemDidPlayToEndTimeNotification object:self.currentItem];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleAudioSessionInterruption:) name:AVAudioSessionInterruptionNotification object:[AVAudioSession sharedInstance]];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleMediaServicesReset) name:AVAudioSessionMediaServicesWereResetNotification object:[AVAudioSession sharedInstance]];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleApplicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:[UIApplication sharedApplication]];
 }
 
 - (void)clearTimeOutTimer {
@@ -126,6 +131,9 @@
   UALOG_DEBUG(@"");
   UAAssert([NSThread isMainThread]);
   [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:nil];
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionMediaServicesWereResetNotification object:nil];
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
   
   if (self.timeObserver != nil) {
     [self removeTimeObserver:self.timeObserver];
@@ -155,6 +163,7 @@
       __block UnityAdsVideoPlayer *blockSelf = self;
       
       self.lastUpdate = kCMTimeInvalid;
+      [self clearVideoProgressMonitor];
       self.videoProgressMonitor = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(_videoProgressMonitor:) userInfo:nil repeats:YES];
       
       Float64 duration = [self _currentVideoDuration];
@@ -200,6 +209,45 @@
     }
   } else {
     [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+  }
+}
+
+#pragma mark Audio notifications
+
+- (void)_handleAudioSessionInterruption:(NSNotification *)notification {
+  NSNumber *interruptionType = [[notification userInfo] objectForKey:AVAudioSessionInterruptionTypeKey];
+  NSNumber *interruptionOption = [[notification userInfo] objectForKey:AVAudioSessionInterruptionOptionKey];
+  
+  switch (interruptionType.unsignedIntegerValue) {
+    case AVAudioSessionInterruptionTypeBegan:
+      UALOG_DEBUG(@"Audio session interruption began");
+      break;
+      
+    case AVAudioSessionInterruptionTypeEnded:
+      if (interruptionOption.unsignedIntegerValue == AVAudioSessionInterruptionOptionShouldResume) {
+        UALOG_DEBUG(@"Resuming video playback after audio session interrupt");
+        [self play];
+      } else {
+        UALOG_DEBUG(@"Ending video playback after audio session interrupt");
+        [self _videoPlaybackEnded:nil];
+      }
+      break;
+      
+    default:
+      break;
+  }
+}
+
+- (void)_handleMediaServicesReset {
+  UALOG_DEBUG(@"Media services reset");
+  [self _videoPlaybackEnded:nil];
+}
+
+#pragma mark Application lifecycle notifications
+
+- (void)_handleApplicationDidBecomeActive:(UIApplication*)application {
+  if(self.isPlaying) {
+    [self play];
   }
 }
 
@@ -253,7 +301,8 @@
   UALOG_DEBUG(@"_logVideoAnalytics");
 	self.videoPosition++;
   UnityAdsCampaign *campaign = [[UnityAdsCampaignManager sharedInstance] selectedCampaign];
-  [[UnityAdsAnalyticsUploader sharedInstance] logVideoAnalyticsWithPosition:self.videoPosition campaignId:campaign.id viewed:campaign.viewed];
+  BOOL cached = [[UnityAdsCacheManager sharedInstance] is:ResourceTypeTrailerVideo cachedForCampaign:campaign];
+  [[UnityAdsAnalyticsUploader sharedInstance] logVideoAnalyticsWithPosition:self.videoPosition campaignId:campaign.id viewed:campaign.viewed cached:cached];
 }
 
 @end

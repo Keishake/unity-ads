@@ -105,6 +105,11 @@ static UnityAds *sharedUnityAdsInstance = nil;
   [[UnityAdsProperties sharedInstance] enableUnityDeveloperInternalTestMode];
 }
 
+- (void)setCampaignDataURL:(NSString *)campaignDataUrl {
+  [[UnityAdsProperties sharedInstance] setCampaignDataUrl:campaignDataUrl];
+  [[UnityAdsProperties sharedInstance] setCampaignQueryString:[[UnityAdsProperties sharedInstance] createCampaignQueryString]];
+}
+
 - (BOOL)startWithGameId:(NSString *)gameId {
   if (![UnityAds isSupported]) return false;
   return [self startWithGameId:gameId andViewController:nil];
@@ -122,7 +127,7 @@ static UnityAds *sharedUnityAdsInstance = nil;
   
   [[UnityAdsProperties sharedInstance] setCurrentViewController:viewController];
 	[[UnityAdsProperties sharedInstance] setAdsGameId:gameId];
-  [[UnityAdsMainViewController sharedInstance] setDelegate:self];
+  [(UnityAdsMainViewController *)[UnityAdsMainViewController sharedInstance] setDelegate:self];
   
   self.initializer = [[UnityAdsDefaultInitializer alloc] init];
   
@@ -139,17 +144,26 @@ static UnityAds *sharedUnityAdsInstance = nil;
 }
 
 - (BOOL)canShowAds {
-  if ([self canShow] && [[[UnityAdsCampaignManager sharedInstance] getViewableCampaigns] count] > 0) {
-    return YES;
-  }
-  
-  return NO;
+  return [self canShow];
 }
 
 - (BOOL)canShow {
 	UAAssertV([NSThread mainThread], NO);
   if (![UnityAds isSupported]) return NO;
+  if ([[[UnityAdsCampaignManager sharedInstance] getViewableCampaigns] count] <= 0) return NO;
 	return [self adsCanBeShown];
+}
+
+- (BOOL)canShowZone:(NSString *)zoneId {
+  if([zoneId length] > 0) {
+    if([[UnityAdsZoneManager sharedInstance] getZone:zoneId] != nil) {
+      return [self canShow];
+    } else {
+      return NO;
+    }
+  } else {
+    return [self canShow];
+  }
 }
 
 - (BOOL)setZone:(NSString *)zoneId {
