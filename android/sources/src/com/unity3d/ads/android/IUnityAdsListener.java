@@ -12,4 +12,7 @@ public interface IUnityAdsListener {
 	// Unity Ads campaign events
 	public void onFetchCompleted ();
 	public void onFetchFailed ();
+
+	// Unity Ads cick events
+	public void onClicked();
 }

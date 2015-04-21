@@ -25,6 +25,7 @@ static UnityAdsCallback s_OnCampaignsFetchFailed;
 static UnityAdsCallback s_OnShow;
 static UnityAdsCallback s_OnHide;
 static UnityAdsCallback s_OnVideoStarted;
+static UnityAdsCallback s_OnClicked;
 static UnityAdsCallbackStringBool s_OnVideoCompleted;
 
 void UnityAdsOnCampaignsAvailable(JNIEnv* env, jobject* thiz) {
@@ -67,13 +68,20 @@ void UnityAdsOnVideoStarted(JNIEnv* env, jobject* thiz) {
         s_OnVideoStarted();
 }
 
+void UnityAdsOnClicked(JNIEnv* env, jobject* thiz) {
+    UNITYADS_DEBUG("UNITYADSCLASS_CALLBACK:%s", __FUNCTION__);
+    if (s_OnClicked != NULL)
+        s_OnClicked();
+}
+
 void UnityAdsAndroidBridge::InitJNI(JavaVM* vm,
     UnityAdsCallback onCampaignsAvailable, 
     UnityAdsCallback onCampaignsFetchFailed,
     UnityAdsCallback onShow, 
     UnityAdsCallback onHide, 
     UnityAdsCallback onVideoStarted, 
-    UnityAdsCallbackStringBool onVideoCompleted)
+    UnityAdsCallbackStringBool onVideoCompleted, 
+    UnityAdsCallback onClicked)
 {
     s_OnCampaignsAvailable = onCampaignsAvailable;
     s_OnCampaignsFetchFailed = onCampaignsFetchFailed;
@@ -81,6 +89,7 @@ void UnityAdsAndroidBridge::InitJNI(JavaVM* vm,
     s_OnHide = onHide;
     s_OnVideoStarted = onVideoStarted;
     s_OnVideoCompleted = onVideoCompleted;
+    s_OnClicked = onClicked;
 
     /* HELP FOR SIGNATURES http://www.rgagnon.com/javadetails/java-0286.html */
     JNINativeMethod callbacks[] =
@@ -90,7 +99,8 @@ void UnityAdsAndroidBridge::InitJNI(JavaVM* vm,
         {"UnityAdsOnShow", "()V", (void*)UnityAdsOnShow},
         {"UnityAdsOnHide", "()V", (void*)UnityAdsOnHide},
         {"UnityAdsOnVideoCompleted", "(Ljava/lang/String;I)V", (void*)UnityAdsOnVideoCompleted},
-        {"UnityAdsOnVideoStarted", "()V", (void*)UnityAdsOnVideoStarted}
+        {"UnityAdsOnVideoStarted", "()V", (void*)UnityAdsOnVideoStarted},
+        {"UnityAdsOnClicked", "()V", (void*)UnityAdsOnClicked}
     };
 
     adsJavaVm = vm;

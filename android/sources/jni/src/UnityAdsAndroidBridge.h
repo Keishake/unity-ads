@@ -76,7 +76,7 @@ typedef void (*UnityAdsCallbackStringBool)(const char*, int);
 class UnityAdsAndroidBridge
 {
 public:
-	static void InitJNI(JavaVM* vm, UnityAdsCallback onCampaignsAvailable, UnityAdsCallback onCampaignsFetchFailed, UnityAdsCallback onShow, UnityAdsCallback onHide, UnityAdsCallback onVideoStarted, UnityAdsCallbackStringBool onVideoCompleted);
+	static void InitJNI(JavaVM* vm, UnityAdsCallback onCampaignsAvailable, UnityAdsCallback onCampaignsFetchFailed, UnityAdsCallback onShow, UnityAdsCallback onHide, UnityAdsCallback onVideoStarted, UnityAdsCallbackStringBool onVideoCompleted, UnityAdsCallback onClicked);
 	static void ReleaseJNI();
 /* API */
 	static void Init(jobject activity, const char* gameId, bool testMode, int logLevel);

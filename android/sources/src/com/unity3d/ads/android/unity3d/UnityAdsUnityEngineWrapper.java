@@ -142,4 +142,10 @@ public class UnityAdsUnityEngineWrapper implements IUnityAdsListener {
     UnityAdsOnFetchFailed();
   }
 
+  private static native void UnityAdsOnClicked();
+  @Override
+  public void onClicked(){
+      UnityAdsOnClicked();
+  }
+
 }

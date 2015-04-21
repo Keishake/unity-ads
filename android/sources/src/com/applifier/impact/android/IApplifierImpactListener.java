@@ -12,4 +12,7 @@ public interface IApplifierImpactListener {
 	// Impact campaign events
 	public void onCampaignsAvailable ();
 	public void onCampaignsFetchFailed ();
+
+	// Impact click events
+	public void onClicked();
 }

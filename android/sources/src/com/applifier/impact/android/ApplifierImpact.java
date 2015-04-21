@@ -186,4 +186,11 @@ public class ApplifierImpact implements IUnityAdsListener {
 			_impactListener.onCampaignsFetchFailed();
 		}
 	}
+
+    @Override
+    public void onClicked() {
+        if (_impactListener != null) {
+            _impactListener.onClicked();
+        }
+    }
 }

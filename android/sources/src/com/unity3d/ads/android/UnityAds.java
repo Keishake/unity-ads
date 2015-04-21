@@ -688,9 +688,11 @@ public class UnityAds implements IUnityAdsCacheListener,
 
 	    	if (playStoreId != null && !bypassAppSheet) {
 	    		openPlayStoreAsIntent(playStoreId);
+	    		_adsListener.onClicked();
 	    	}
 	    	else if (clickUrl != null ){
 	    		openPlayStoreInBrowser(clickUrl);
+	    		_adsListener.onClicked();
 	    	}
 	    }
 	}

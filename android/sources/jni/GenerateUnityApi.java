@@ -143,7 +143,7 @@ public class GenerateUnityApi {
     headerWriter.println("class UnityAdsAndroidBridge");
     headerWriter.println("{");
     headerWriter.println("public:");
-    headerWriter.println("\tstatic void InitJNI(JavaVM* vm, UnityAdsCallback onCampaignsAvailable, UnityAdsCallback onCampaignsFetchFailed, UnityAdsCallback onShow, UnityAdsCallback onHide, UnityAdsCallback onVideoStarted, UnityAdsCallbackStringBool onVideoCompleted);");
+    headerWriter.println("\tstatic void InitJNI(JavaVM* vm, UnityAdsCallback onCampaignsAvailable, UnityAdsCallback onCampaignsFetchFailed, UnityAdsCallback onShow, UnityAdsCallback onHide, UnityAdsCallback onVideoStarted, UnityAdsCallbackStringBool onVideoCompleted, UnityAdsCallback onClicked);");
     headerWriter.println("\tstatic void ReleaseJNI();");
     headerWriter.println("/* API */");
 
